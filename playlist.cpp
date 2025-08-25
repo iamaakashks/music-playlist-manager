@@ -19,9 +19,22 @@ class song{
 class songManager{
     private:
     song *head;
+    song *tail; //to point to the last song
     public:
     songManager(){
         head = nullptr;
+        tail = nullptr;
+    }
+    ~songManager(){
+        song *temp = head;
+        while(temp!=nullptr){
+            song *nextSong = temp->next;
+            delete temp;
+            temp = nextSong;
+        }
+        head = nullptr;
+        tail = nullptr;
+        cout << "\nPlaylist is removed to prevent the memory leak";
     }
 
     void addSong(string songTitle, string singer){
