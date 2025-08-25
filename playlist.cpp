@@ -34,19 +34,17 @@ class songManager{
         }
         head = nullptr;
         tail = nullptr;
-        cout << "\nPlaylist is removed to prevent the memory leak";
+    //    Playlist is removed to prevent the memory leak
     }
 
     void addSong(string songTitle, string singer){
         song* newSong = new song(songTitle, singer);
         if(head == nullptr){
             head = newSong;
+            tail = newSong;
         }else{
-            song* temp = head;
-            while(temp->next!=nullptr){
-                temp = temp->next;
-            }
-            temp->next = newSong;
+            tail->next = newSong;
+            tail = newSong;
         }
         cout << "\nSong Added in the playlist";
     }
@@ -59,7 +57,7 @@ class songManager{
         song *temp = head;
         while(temp){
             cout << "\n---";
-            cout << "\nSong: " << temp->songTitle;
+            cout << "\nSong:   " << temp->songTitle;
             cout << "\nSinger: " << temp->singer;
             cout << "\n----";
             temp = temp->next;
@@ -84,7 +82,7 @@ class songManager{
             temp = temp->next;
         }
         if(count == 0){
-            cout << "\nCouldn't find the song";
+            cout << "\nCouldn't find the song" << songTitle;
             return;
         }
     }
