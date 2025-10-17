@@ -1,16 +1,23 @@
 #include<bits/stdc++.h>
+#include<fstream>
+#include<sstream>
+#include<limits>
 using namespace std;
 
 class song{
     private:
     string songTitle;
     string singer;
+    string album;
+    int year;
     song *next;
 
     public:
-    song(string title, string singer){
+    song(string title, string singer, string album, int year){
         songTitle = title;
         this->singer = singer;
+        this->album = album;
+        this->year = year;
         next = nullptr;
     }
     friend class songManager;
@@ -37,8 +44,8 @@ class songManager{
     //    Playlist is removed to prevent the memory leak
     }
 
-    void addSong(string songTitle, string singer){
-        song* newSong = new song(songTitle, singer);
+    void addSong(string songTitle, string singer, string album, int year){
+        song* newSong = new song(songTitle, singer, album, year);
         if(head == nullptr){
             head = newSong;
             tail = newSong;
@@ -59,6 +66,8 @@ class songManager{
             cout << "\n---";
             cout << "\nSong:   " << temp->songTitle;
             cout << "\nSinger: " << temp->singer;
+            cout << "\nAlbum: " << temp->album;
+            cout << "\nYear: " << temp->year;
             cout << "\n----";
             temp = temp->next;
         }
@@ -115,11 +124,66 @@ class songManager{
         
     }
 
+    void savePlaylistToFile(string filename);
+    void loadPlaylistFromFile(string filename);
+
 };
+
+void songManager::savePlaylistToFile(string filename){
+    ofstream file(filename);
+    if(!file.is_open()){
+        cout << "Error opening file for writing." << endl;
+        return;
+    }
+
+    song *temp = head;
+    while(temp){
+        file << "song=" << temp->songTitle << ",singer=" << temp->singer << ",album=" << temp->album << ",year=" << temp->year << endl;
+        temp = temp->next;
+    }
+
+    file.close();
+    cout << "Playlist saved to " << filename << endl;
+}
+
+void songManager::loadPlaylistFromFile(string filename){
+    ifstream file(filename);
+    if(!file.is_open()){
+        cout << "No saved playlist found." << endl;
+        return;
+    }
+
+    string line, title, singer, album, year_str;
+    int year;
+
+    while(getline(file, line)){
+        stringstream ss(line);
+        string segment;
+        
+        getline(ss, segment, ',');
+        title = segment.substr(segment.find("=") + 1);
+
+        getline(ss, segment, ',');
+        singer = segment.substr(segment.find("=") + 1);
+
+        getline(ss, segment, ',');
+        album = segment.substr(segment.find("=") + 1);
+
+        getline(ss, segment, ',');
+        year_str = segment.substr(segment.find("=") + 1);
+        year = stoi(year_str);
+
+        addSong(title, singer, album, year);
+    }
+
+    file.close();
+    cout << "Playlist loaded from " << filename << endl;
+}
 int main() {
     songManager manager;
-    int choice;
-    string title, artist;
+    manager.loadPlaylistFromFile("playlist.csv");
+    int choice, year;
+    string title, artist, album;
 
     do {
         cout << "\n\n====== Music Playlist Menu ======\n";
@@ -127,9 +191,19 @@ int main() {
         cout << "2. Display Playlist\n";
         cout << "3. Search Song\n";
         cout << "4. Delete Song\n";
-        cout << "5. Exit\n";
+        cout << "5. Save Playlist\n";
+        cout << "6. Load Playlist\n";
+        cout << "7. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
+
+        if (cin.fail()) {
+            cout << "Invalid input. Please enter a number.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            choice = 0;
+            continue;
+        }
         cin.ignore(); // to ignore newline character after choice
 
         switch(choice) {
@@ -138,7 +212,12 @@ int main() {
                 getline(cin, title);
                 cout << "Enter singer name: ";
                 getline(cin, artist);
-                manager.addSong(title, artist);
+                cout << "Enter album name: ";
+                getline(cin, album);
+                cout << "Enter year of release: ";
+                cin >> year;
+                cin.ignore();
+                manager.addSong(title, artist, album, year);
                 break;
 
             case 2:
@@ -158,13 +237,22 @@ int main() {
                 break;
 
             case 5:
-                cout << "Exiting... Goodbye!\n";
+                manager.savePlaylistToFile("playlist.csv");
+                break;
+
+            case 6:
+                manager.loadPlaylistFromFile("playlist.csv");
+                break;
+
+            case 7:
+                cout << "Saving playlist and exiting... Goodbye!\n";
+                manager.savePlaylistToFile("playlist.csv");
                 break;
 
             default:
                 cout << "Invalid choice. Try again.\n";
         }
-    } while(choice != 5);
+    } while(choice != 7);
 
     return 0;
 }
